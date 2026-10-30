@@ -1,0 +1,46 @@
+
+name: Build UltraBoost X
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract source archive
+        run: |
+          unzip -o UltraBoostX-GitHub-Source.zip -d source
+          cd source/UltraBoostX-GitHub-Source
+          test -f build.gradle
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.2'
+
+      - name: Build mod
+        working-directory: source/UltraBoostX-GitHub-Source
+        run: gradle --no-daemon clean build
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltraBoostX-JAR
+          path: source/UltraBoostX-GitHub-Source/build/libs/*.jar
+          if-no-files-found: error
